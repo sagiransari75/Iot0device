@@ -1,0 +1,182 @@
+﻿
+> frontend@0.1.0 lint
+> eslint
+
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\app\dashboard\page.js
+  236:34  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  234 |             <span className={`tag ${paused ? 'tag-white' : 'tag-orange'}`}>{paused ? 'PAUSED' : 'LIVE'}</span>
+  235 |           </div>
+> 236 |           <Line ref={tRef} data={tData.current} options={chartOpts('#ff5500')} />
+      |                                  ^^^^^^^^^^^^^ Cannot access ref value during render
+  237 |         </div>
+  238 |         <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', padding: '1.5rem' }}>
+  239 |           <div style={{ marginBottom: '1.25rem' }}>  react-hooks/refs
+  243:34  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  241 |             <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Detected / Clear ┬╖ GPIO22 ┬╖ PIR</span>
+  242 |           </div>
+> 243 |           <Line ref={mRef} data={mData.current} options={chartOpts('#00ff88')} />
+      |                                  ^^^^^^^^^^^^^ Cannot access ref value during render
+  244 |         </div>
+  245 |       </div>
+  246 |                                                                                                                                                  react-hooks/refs
+  257:34  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  255 |             <span className={`tag ${paused ? 'tag-white' : 'tag-orange'}`}>{paused ? 'PAUSED' : 'LIVE'}</span>
+  256 |           </div>
+> 257 |           <Line ref={lRef} data={lData.current} options={chartOpts('#0099ff')} />
+      |                                  ^^^^^^^^^^^^^ Cannot access ref value during render
+  258 |         </div>
+  259 |
+  260 |         {/* Event Log */}                                                                                                                                     react-hooks/refs
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\app\simulator\page.js
+  161:9   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @next/next/no-img-element
+  262:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  260 |   useEffect(() => {
+  261 |     const newSocket = io('http://localhost:4000');
+> 262 |     setSocket(newSocket);
+      |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  263 |     return () => newSocket.disconnect();
+  264 |   }, []);
+  265 |                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/set-state-in-effect
+  282:6   warning  React Hook useEffect has a missing dependency: 'setNodes'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  403:6   warning  React Hook useEffect has a missing dependency: 'setNodes'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  505:33  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `saveActivity`, but the source dependencies were [setEdges, isRunning, getNodes, getEdges]. Inferred different dependency than source.
+
+  503 |
+  504 |   // ΓöÇΓöÇΓöÇ Wire Connection ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+> 505 |   const onConnect = useCallback((params) => {
+      |                                 ^^^^^^^^^^^^^
+> 506 |     const srcPin = (params.sourceHandle || '').toLowerCase();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 507 |     const tgtPin = (params.targetHandle || '').toLowerCase();
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 572 |     saveActivity('Connect Wire', `Wired ${srcPin} ΓåÆ ${tgtPin}`);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 573 |   }, [setEdges, isRunning, getNodes, getEdges]);
+      | ^^^^ Could not preserve existing manual memoization
+  574 |
+  575 |   const onDrop = useCallback(e => {
+  576 |     e.preventDefault();  react-hooks/preserve-manual-memoization
+  573:6   warning  React Hook useCallback has a missing dependency: 'saveActivity'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  575:30  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `saveActivity`, but the source dependencies were [screenToFlowPosition, setNodes, isRunning]. Inferred different dependency than source.
+
+  573 |   }, [setEdges, isRunning, getNodes, getEdges]);
+  574 |
+> 575 |   const onDrop = useCallback(e => {
+      |                              ^^^^^^
+> 576 |     e.preventDefault();
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 577 |     const type    = e.dataTransfer.getData('type');
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 586 |     saveActivity('Add Component', `Added ${subType || type}`);
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 587 |   }, [screenToFlowPosition, setNodes, isRunning]);
+      | ^^^^ Could not preserve existing manual memoization
+  588 |
+  589 |   const currentNodes = nodes; // for ComponentPanel
+  590 |                                                                                                                                                                                                                               react-hooks/preserve-manual-memoization
+  587:6   warning  React Hook useCallback has a missing dependency: 'saveActivity'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\components\Navbar.jsx
+  24:5  error  Error: Cannot access variable before it is declared
+
+`updateThemeBtn` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  22 |     const saved = localStorage.getItem('theme') || 'dark';
+  23 |     document.documentElement.setAttribute('data-theme', saved);
+> 24 |     updateThemeBtn(saved);
+     |     ^^^^^^^^^^^^^^ `updateThemeBtn` accessed before it is declared
+  25 |   }, []);
+  26 |
+  27 |   function updateThemeBtn(theme) {
+
+  25 |   }, []);
+  26 |
+> 27 |   function updateThemeBtn(theme) {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |     if (!themeRef.current) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 29 |     themeRef.current.innerHTML = theme === 'dark'
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 30 |       ? `<svg width="16" height="16" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |       : `<svg width="16" height="16" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 32 |   }
+     | ^^^^ `updateThemeBtn` is declared here
+  33 |
+  34 |   function toggleTheme() {
+  35 |     const current = document.documentElement.getAttribute('data-theme') || 'dark';  react-hooks/immutability
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\components\simulator\nodes\Esp32Node.jsx
+  29:7  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\components\simulator\nodes\MicrocontrollerNode.jsx
+  321:36  error    Component definition is missing display name                                                                                                                                                                                                                                             react/display-name
+  382:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\components\simulator\nodes\SensorNode.jsx
+   26:7  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   63:7  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  101:7  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  130:7  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\context\AuthContext.jsx
+  15:19  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |   useEffect(() => {
+  14 |     const token = localStorage.getItem('iot_token');
+> 15 |     if (!token) { setLoading(false); return; }
+     |                   ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  16 |     fetch(`${BACKEND}/api/auth/me`, {
+  17 |       headers: { Authorization: `Bearer ${token}` },
+  18 |     })  react-hooks/set-state-in-effect
+
+C:\Users\sshub\Pictures\real\Iot0device\frontend\src\pages\historyPage.jsx
+  15:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |     const storedUser = localStorage.getItem('user');
+  14 |     if (storedUser) {
+> 15 |       setUser(JSON.parse(storedUser));
+     |       ^^^^^^^ Avoid calling setState() directly within an effect
+  16 |     }
+  17 |   }, []);
+  18 |  react-hooks/set-state-in-effect
+
+Γ£û 21 problems (10 errors, 11 warnings)
+

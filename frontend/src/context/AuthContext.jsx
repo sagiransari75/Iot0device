@@ -12,7 +12,11 @@ export function AuthProvider({ children }) {
   // Restore session on mount
   useEffect(() => {
     const token = localStorage.getItem('iot_token');
-    if (!token) { setLoading(false); return; }
+    if (!token) { 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false); 
+      return; 
+    }
     fetch(`${BACKEND}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })

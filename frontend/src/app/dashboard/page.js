@@ -68,9 +68,9 @@ export default function DashboardPage() {
   const [eventLog,   setEventLog] = useState([]);
   const [stats,      setStats]    = useState({ speedLabel: 'normal', activeSensors: 3, uptimeSeconds: 0 });
 
-  const tData = useRef(makeChartData('#ff5500'));
-  const mData = useRef(makeChartData('#00ff88'));
-  const lData = useRef(makeChartData('#0099ff'));
+  const [tData] = useState(() => makeChartData('#ff5500'));
+  const [mData] = useState(() => makeChartData('#00ff88'));
+  const [lData] = useState(() => makeChartData('#0099ff'));
   const tRef  = useRef(null);
   const mRef  = useRef(null);
   const lRef  = useRef(null);
@@ -84,7 +84,7 @@ export default function DashboardPage() {
   }, [user, loading, router]);
 
   function pushChart(chartData, chartRef, label, value) {
-    const d = chartData.current;
+    const d = chartData;
     d.labels.push(label);
     d.datasets[0].data.push(value);
     if (d.labels.length > MAX_PTS) { d.labels.shift(); d.datasets[0].data.shift(); }
@@ -99,9 +99,9 @@ export default function DashboardPage() {
       .then(r => r.json())
       .then(snap => {
         const { history, latest, log, stats: s } = snap;
-        tData.current = makeChartData('#ff5500', history.temperature.map(h => h.time), history.temperature.map(h => h.value));
-        mData.current = makeChartData('#00ff88', history.motion.map(h => h.time), history.motion.map(h => h.value));
-        lData.current = makeChartData('#0099ff', history.light.map(h => h.time), history.light.map(h => h.value));
+        Object.assign(tData, makeChartData('#ff5500', history.temperature.map(h => h.time), history.temperature.map(h => h.value)));
+        Object.assign(mData, makeChartData('#00ff88', history.motion.map(h => h.time), history.motion.map(h => h.value)));
+        Object.assign(lData, makeChartData('#0099ff', history.light.map(h => h.time), history.light.map(h => h.value)));
 
         if (latest.temperature !== null) {
           const hot = latest.temperature > 35;
@@ -233,14 +233,14 @@ export default function DashboardPage() {
             </div>
             <span className={`tag ${paused ? 'tag-white' : 'tag-orange'}`}>{paused ? 'PAUSED' : 'LIVE'}</span>
           </div>
-          <Line ref={tRef} data={tData.current} options={chartOpts('#ff5500')} />
+          <Line ref={tRef} data={tData} options={chartOpts('#ff5500')} />
         </div>
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', padding: '1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}>
             <div className="label label-orange" style={{ marginBottom: 2 }}>Motion Events</div>
             <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Detected / Clear · GPIO22 · PIR</span>
           </div>
-          <Line ref={mRef} data={mData.current} options={chartOpts('#00ff88')} />
+          <Line ref={mRef} data={mData} options={chartOpts('#00ff88')} />
         </div>
       </div>
 
@@ -254,7 +254,7 @@ export default function DashboardPage() {
             </div>
             <span className={`tag ${paused ? 'tag-white' : 'tag-orange'}`}>{paused ? 'PAUSED' : 'LIVE'}</span>
           </div>
-          <Line ref={lRef} data={lData.current} options={chartOpts('#0099ff')} />
+          <Line ref={lRef} data={lData} options={chartOpts('#0099ff')} />
         </div>
 
         {/* Event Log */}

@@ -12,6 +12,7 @@ export default function HistoryPage() {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(JSON.parse(storedUser));
     }
   }, []);

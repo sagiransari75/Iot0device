@@ -462,3 +462,80 @@ input[type=range]::-webkit-slider-thumb {
 /* ── Reveal ── */
 .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
 .reveal.visible { opacity: 1; transform: none; }
+
+/* ─── Simulator Theme Variables ──────────────────────────────────────────────── */
+:root {
+  --sim-bg:         #0a0a0a;
+  --sim-bg2:        #0d0d0d;
+  --sim-bg3:        #080808;
+  --sim-bg4:        #050505;
+  --sim-bg5:        #000000;
+  --sim-panel-bg:   #111111;
+  --sim-border:     #1a1a1a;
+  --sim-border2:    #222222;
+  --sim-border3:    #333333;
+  --sim-border4:    #2a2a3e;
+  --sim-text:       #cccccc;
+  --sim-text2:      #888888;
+  --sim-text3:      #555555;
+  --sim-text4:      #444444;
+  --sim-text5:      #333333;
+  --sim-tab-bg:     #1a1a2e;
+  --sim-legend-bg:  rgba(0,0,0,0.88);
+  --sim-comp-bg:    rgba(0,0,0,0.92);
+  --sim-toolbar-bg: #0d0d0d;
+  --sim-editor-hdr: #0a0a0a;
+  --sim-terminal-bg:#000000;
+}
+
+[data-theme='light'] {
+  --sim-bg:         #f0f0ec;
+  --sim-bg2:        #e8e8e4;
+  --sim-bg3:        #dcdcda;
+  --sim-bg4:        #ececea;
+  --sim-bg5:        #f8f8f6;
+  --sim-panel-bg:   #e0e0dc;
+  --sim-border:     #cccccc;
+  --sim-border2:    #bbbbbb;
+  --sim-border3:    #aaaaaa;
+  --sim-border4:    #9090b0;
+  --sim-text:       #1a1a1a;
+  --sim-text2:      #555555;
+  --sim-text3:      #777777;
+  --sim-text4:      #888888;
+  --sim-text5:      #999999;
+  --sim-tab-bg:     #d8d8f0;
+  --sim-legend-bg:  rgba(240,240,236,0.96);
+  --sim-comp-bg:    rgba(236,236,234,0.96);
+  --sim-toolbar-bg: #e4e4e0;
+  --sim-editor-hdr: #d8d8d4;
+  --sim-terminal-bg:#1a1a2a;
+}
+
+/* ── ReactFlow / XY-Flow light mode overrides ── */
+[data-theme='light'] .react-flow {
+  background: var(--sim-bg) !important;
+}
+[data-theme='light'] .react-flow__background {
+  background-color: var(--sim-bg) !important;
+}
+[data-theme='light'] .react-flow__controls {
+  background: var(--sim-panel-bg) !important;
+  border: 1px solid var(--sim-border2) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+[data-theme='light'] .react-flow__controls button {
+  background: var(--sim-panel-bg) !important;
+  color: var(--sim-text) !important;
+  border-bottom: 1px solid var(--sim-border2) !important;
+}
+[data-theme='light'] .react-flow__controls button:hover {
+  background: var(--sim-border) !important;
+}
+[data-theme='light'] .react-flow__node {
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+}
+[data-theme='light'] .react-flow__edge-path {
+  opacity: 0.85;
+}
+
