@@ -509,11 +509,10 @@ function SimulatorCanvas() {
     const srcPin = (params.sourceHandle || '').toLowerCase();
     const tgtPin = (params.targetHandle || '').toLowerCase();
     const powerPins  = ['vcc', '3v3', '5v', '3.3v', 'vin'];
-    const groundPins = ['gnd', 'ground'];
     const isSrcPower  = powerPins.includes(srcPin);
     const isTgtPower  = powerPins.includes(tgtPin);
-    const isSrcGnd    = groundPins.includes(srcPin);
-    const isTgtGnd    = groundPins.includes(tgtPin);
+    const isSrcGnd    = srcPin.startsWith('gnd') || srcPin === 'ground';
+    const isTgtGnd    = tgtPin.startsWith('gnd') || tgtPin === 'ground';
     const isSrcSignal = !isSrcPower && !isSrcGnd;
     const isTgtSignal = !isTgtPower && !isTgtGnd;
 
@@ -552,7 +551,7 @@ function SimulatorCanvas() {
     // ── Wire color by pin type ──
     const pinColor = (pin) => {
       if (['vcc','3v3','5v','3.3v','vin','vbus','vsys'].includes(pin)) return '#ef4444';  // red — power
-      if (['gnd','ground'].includes(pin))                               return '#6b7280';  // gray — GND
+      if (pin.startsWith('gnd') || pin === 'ground')                    return '#6b7280';  // gray — GND
       if (['sda','scl'].includes(pin))                                  return '#10b981';  // teal — I2C
       if (['mosi','miso','sclk','ce0','ce1','sck'].includes(pin))       return '#06b6d4';  // cyan — SPI
       if (['tx','rx','tx0','rx0','tx1','rx1','tx2','rx2','txd','rxd'].includes(pin)) return '#f59e0b'; // amber — UART
