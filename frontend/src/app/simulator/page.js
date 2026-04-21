@@ -14,6 +14,8 @@ import { io } from 'socket.io-client';
 import { SensorNode, CATALOG } from '@/components/simulator/nodes/SensorNode';
 import { MicrocontrollerNode } from '@/components/simulator/nodes/MicrocontrollerNode';
 
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000');
+
 // ─── Theme-aware CSS variable reader ─────────────────────────────────────────
 // Returns a live obj of --sim-* values that updates when data-theme changes
 function useTheme() {
@@ -258,7 +260,7 @@ function SimulatorCanvas() {
 
   // ── Socket connection ──
   useEffect(() => {
-    const newSocket = io('http://localhost:4000');
+    const newSocket = io(BACKEND);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(newSocket);
     return () => newSocket.disconnect();
@@ -408,7 +410,7 @@ function SimulatorCanvas() {
   const saveActivity = async (action, details) => {
     if (!user) return;
     try {
-      await axios.post('http://localhost:4000/api/history/add', { userId: user.id, action, details });
+      await axios.post(`${BACKEND}/api/history/add`, { userId: user.id, action, details });
     } catch (err) { console.error('Log error:', err); }
   };
 
@@ -416,7 +418,7 @@ function SimulatorCanvas() {
     if (!user) return alert('Please login first');
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:4000/api/circuits', {
+      const res = await axios.post(`${BACKEND}/api/circuits`, {
         id: currentProjectId,
         name: 'My Automated Project Workspace',
         nodes: getNodes(), edges: getEdges(), code
@@ -433,9 +435,9 @@ function SimulatorCanvas() {
     if (!user) return alert('Please login first');
     try {
       const token = localStorage.getItem('token');
-      const listRes = await axios.get('http://localhost:4000/api/circuits', { headers: { Authorization: `Bearer ${token}` } });
+      const listRes = await axios.get(`${BACKEND}/api/circuits`, { headers: { Authorization: `Bearer ${token}` } });
       if (listRes.data?.length > 0) {
-        const res = await axios.get(`http://localhost:4000/api/circuits/${listRes.data[0].id}`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${BACKEND}/api/circuits/${listRes.data[0].id}`, { headers: { Authorization: `Bearer ${token}` } });
         if (res.data?.data) {
           const { nodes: ln, edges: le, code: lc } = res.data.data;
           if (ln) setNodes(ln);
