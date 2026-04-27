@@ -70,15 +70,9 @@ const nodeTypes = {
 
 const getDeviceImg = (type) => {
   const images = {
-    raspberrypi: '/devices/raspberrypi.png',
-    esp32:       '/devices/esp32.png',
-    pico:        '/devices/pico.png',
-    arduino:     '/devices/arduino_uno.png',
-    breadboard:  '/devices/esp32.png',
-    dht11:       '/devices/dht11.png',
-    pir:         '/devices/pir.png',
+    arduino: '/devices/arduino_uno.png',
   };
-  return images[type] || '/devices/sensor_generic.png';
+  return images[type] || `/devices/${type}.png`;
 };
 
 // ─── Default template code (simulation blocked if this or empty) ──────────────
@@ -190,7 +184,8 @@ function ComponentPanel({ nodes, edges, isRunning, sensorData }) {
         const connectedHandles = connectedEdges.map(e => e.source === node.id ? e.sourceHandle : e.targetHandle);
         let reqHandles = ['vcc', 'gnd', 'signal'];
         if (node.data.sensorType === 'hcsr04') reqHandles = ['vcc', 'gnd', 'trig', 'echo'];
-        if (node.data.sensorType === 'bme280') reqHandles = ['vcc', 'gnd', 'sda', 'scl'];
+        else if (node.data.sensorType === 'bme280') reqHandles = ['vcc', 'gnd', 'sda', 'scl'];
+        else if (node.data.sensorType === 'led')    reqHandles = ['gnd', 'signal'];
         const isWired = reqHandles.every(h => connectedHandles.includes(h));
         const hasError = connectedEdges.some(e => e.data?.isError);
         const isActive = isRunning && isWired && !hasError;
@@ -204,8 +199,8 @@ function ComponentPanel({ nodes, edges, isRunning, sensorData }) {
         if (hasError) { statusText = '✕ WIRE ERROR'; statusColor = '#ef4444'; }
         if (isActive) {
           statusColor = cat.color || '#10b981';
-          if (node.data.sensorType === 'led')    statusText = '💡 GLOWING';
-          else if (node.data.sensorType === 'buzzer') statusText = '🔔 BEEPING';
+          if (node.data.sensorType === 'led')    statusText = live ? '💡 ON' : '○ OFF';
+          else if (node.data.sensorType === 'buzzer') statusText = live ? '🔔 BEEPING' : '○ IDLE';
           else if (node.data.sensorType === 'button') statusText = '🔘 ACTIVE';
           else if (hasLive) {
             if (typeof live === 'boolean') statusText = live ? '⬤ DETECTED' : '⬤ CLEAR';
@@ -315,6 +310,7 @@ function SimulatorCanvas() {
         let reqHandles = ['vcc', 'gnd', 'signal'];
         if (sType === 'hcsr04') reqHandles = ['vcc', 'gnd', 'trig', 'echo'];
         else if (sType === 'bme280') reqHandles = ['vcc', 'gnd', 'sda', 'scl'];
+        else if (sType === 'led')    reqHandles = ['gnd', 'signal'];
 
         const nodeEdges = currentEdges.filter(e => e.source === node.id || e.target === node.id);
         const nodeHandles = nodeEdges.map(e => e.source === node.id ? e.sourceHandle : e.targetHandle);
@@ -360,23 +356,67 @@ function SimulatorCanvas() {
         if (connectedKeys.includes(k)) filteredData[k] = v;
       }
 
-      // Add actuator states
-      if (connectedKeys.includes('led'))    filteredData.led    = true;
-      if (connectedKeys.includes('buzzer')) filteredData.buzzer = true;
+      // Add actuator states from GPIO (if connected)
+      currentNodes.forEach(node => {
+        if (node.type !== 'sensor') return;
+        if (node.data.sensorType === 'led' || node.data.sensorType === 'buzzer') {
+          const nodeEdges = currentEdges.filter(e => e.source === node.id || e.target === node.id);
+          const signalEdge = nodeEdges.find(e => 
+            (e.source === node.id && e.sourceHandle === 'signal') || 
+            (e.target === node.id && e.targetHandle === 'signal')
+          );
+          if (signalEdge) {
+            const mcuPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
+            const pinMatch = mcuPin?.match(/\d+/);
+            if (pinMatch && payload.gpio) {
+              const pinIndex = pinMatch[0];
+              filteredData[node.data.sensorType] = (payload.gpio[pinIndex]?.state === 'HIGH');
+            }
+          }
+        }
+      });
 
       setSensorData(prev => ({ ...prev, ...filteredData }));
 
-      // Update live values on sensor nodes
+      // Update live values on all nodes
       setNodes(nds => nds.map(n => {
+        // ── Case 1: Microcontroller Nodes ──
+        if (n.type === 'microcontroller' || n.type === 'raspberrypi') {
+          return { ...n, data: { ...n.data, gpioStates: payload.gpio } };
+        }
+
+        // ── Case 2: Sensor/Actuator Nodes ──
         if (n.type !== 'sensor' || !n.data?.sensorType) return n;
         const cat = CATALOG[n.data.sensorType];
         if (!cat) return n;
 
-        // Actuators
-        if (n.data.sensorType === 'led' || n.data.sensorType === 'buzzer') {
-          return { ...n, data: { ...n.data, liveValue: connectedKeys.includes(n.data.sensorType) ? true : null } };
+        // Find which pin this sensor is connected to
+        const nodeEdges = currentEdges.filter(e => e.source === n.id || e.target === n.id);
+        const signalEdge = nodeEdges.find(e => 
+          (e.source === n.id && e.sourceHandle === 'signal') || 
+          (e.target === n.id && e.targetHandle === 'signal')
+        );
+
+        let gpioValue = null;
+        if (signalEdge && payload.gpio) {
+          const mcuPin = signalEdge.source === n.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
+          if (mcuPin) {
+            const pinMatch = mcuPin.match(/\d+/);
+            const isPowerOrGnd = mcuPin.toLowerCase().includes('v') || mcuPin.toLowerCase().includes('gnd');
+            if (pinMatch && !isPowerOrGnd) {
+              const pinIndex = pinMatch[0];
+              const pinState = payload.gpio[pinIndex]?.state;
+              if (pinState) gpioValue = (pinState === 'HIGH');
+            }
+          }
         }
 
+        // Actuators (LED/Buzzer)
+        if (n.data.sensorType === 'led' || n.data.sensorType === 'buzzer') {
+          return { ...n, data: { ...n.data, liveValue: gpioValue } };
+        }
+
+        // Sensors (DHT11, etc.)
         const dataKey = cat.dataKey;
         if (!dataKey || !connectedKeys.includes(dataKey)) {
           return { ...n, data: { ...n.data, liveValue: null } };
@@ -649,7 +689,7 @@ function SimulatorCanvas() {
               <PaletteItem category="mcu" type="arduino" />
 
               <div style={{ fontSize: '0.55rem', color: t.text3, marginTop: 16, marginBottom: 8, letterSpacing: '1.5px', fontWeight: 700, fontFamily: 'monospace' }}>SENSORS</div>
-              {['dht11', 'pir', 'ldr', 'hcsr04', 'mq2', 'dht22', 'bme280', 'ky037'].map(k =>
+              {['dht11', 'pir', 'ldr', 'hcsr04', 'mq2', 'mq3', 'mq4', 'dht22', 'bme280', 'ky037', 'moisture'].map(k =>
                 <PaletteItem key={k} category="sensor" type={k} />
               )}
 

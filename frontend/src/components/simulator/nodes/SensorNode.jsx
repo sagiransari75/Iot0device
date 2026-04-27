@@ -9,47 +9,57 @@ export const CATALOG = {
   ldr:     { label: 'LDR Module',   sub: 'Light Sensor',     color: '#0099ff', dataKey: 'light',        unit: ' lux', icon: '💡' },
   hcsr04:  { label: 'HC-SR04',      sub: 'Ultrasonic Dist.', color: '#aa44ff', dataKey: 'distance',     unit: ' cm',  icon: '📡' },
   mq2:     { label: 'MQ-2',         sub: 'Gas / Smoke',      color: '#ff4444', dataKey: 'gas',          unit: ' ppm', icon: '💨' },
+  mq3:     { label: 'MQ-3',         sub: 'Alcohol Gas',      color: '#ffa500', dataKey: 'alcohol',      unit: ' ppm', icon: '🍷' },
+  mq4:     { label: 'MQ-4',         sub: 'Methane Gas',      color: '#ff6644', dataKey: 'methane',      unit: ' ppm', icon: '💨' },
   dht22:   { label: 'DHT22',        sub: 'Hi-res Temp/Hum',  color: '#00e1ff', dataKey: 'humidity',     unit: '%',    icon: '💧' },
   bme280:  { label: 'BME280',       sub: 'Pressure I2C',     color: '#ffaa00', dataKey: 'pressure',     unit: ' hPa', icon: '🌬️' },
   ky037:   { label: 'KY-037',       sub: 'Sound Sensor',     color: '#44ffaa', dataKey: 'sound',        unit: '',     icon: '🔊' },
+  moisture:{ label: 'Moisture',     sub: 'Soil Moisture',    color: '#00aaff', dataKey: 'moisture',     unit: '%',    icon: '💧' },
   // Actuators
   led:     { label: 'LED',          sub: 'Output Indicator', color: '#ffdd00', dataKey: 'led',          unit: '',     icon: '💡' },
   buzzer:  { label: 'Buzzer',       sub: 'Audio Alert',      color: '#ff8844', dataKey: 'buzzer',       unit: '',     icon: '🔔' },
   button:  { label: 'Push Button',  sub: 'Digital Input',    color: '#44ffdd', dataKey: 'button',       unit: '',     icon: '🔘' },
 };
 
-// --- LED Glow Component ---
+// --- LED Visual Component (Image based with premium glow) ---
 function LedVisual({ active, error, color = '#ffdd00' }) {
   const glowColor = error ? '#ef4444' : color;
+  
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', padding: '12px' }}>
       <img
         src="/devices/led.png"
         alt="LED"
         onError={e => { e.target.src = '/devices/sensor_generic.png'; }}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, pointerEvents: 'none' }}
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          objectFit: 'contain', 
+          pointerEvents: 'none',
+          filter: active ? `brightness(1.5) drop-shadow(0 0 15px ${glowColor})` : 'grayscale(0.4) brightness(0.8)',
+          transition: 'all 0.3s ease'
+        }}
       />
-      {/* Glow overlay when active */}
+      
       {active && !error && (
-        <>
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: 8,
-            background: `radial-gradient(circle at 50% 30%, ${glowColor}cc 0%, transparent 70%)`,
-            animation: 'ledPulse 0.8s ease-in-out infinite alternate',
-            pointerEvents: 'none'
-          }} />
-          <div style={{
-            position: 'absolute', inset: -8, borderRadius: 16,
-            boxShadow: `0 0 20px 8px ${glowColor}88, 0 0 40px 16px ${glowColor}44`,
-            pointerEvents: 'none', animation: 'ledPulse 0.8s ease-in-out infinite alternate'
-          }} />
-        </>
+        <div style={{
+          position: 'absolute', 
+          top: '40%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '40px', height: '40px',
+          background: glowColor,
+          borderRadius: '50%',
+          filter: 'blur(20px)',
+          opacity: 0.8,
+          zIndex: -1,
+          animation: 'ledPulse 1.2s ease-in-out infinite alternate'
+        }} />
       )}
+
       {error && (
         <div style={{
-          position: 'absolute', inset: -4, borderRadius: 12,
-          boxShadow: '0 0 18px 6px #ef444488',
-          pointerEvents: 'none'
+          position: 'absolute', inset: 0, border: '2px dashed #ef4444',
+          borderRadius: 12, animation: 'sensorPulse 1s infinite'
         }} />
       )}
     </div>
@@ -121,6 +131,8 @@ function ButtonVisual({ pressed }) {
 
 // --- Generic Sensor Visual ---
 function SensorVisual({ sensorType, liveValue, isActive, color, unit, cat }) {
+  const getSensorImg = (type) => `${type}.png`;
+
   const getBrightness = () => {
     if (!isActive || liveValue === null || liveValue === undefined) return 'none';
     return `brightness(1.15) drop-shadow(0 0 8px ${color}88)`;
@@ -128,7 +140,7 @@ function SensorVisual({ sensorType, liveValue, isActive, color, unit, cat }) {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <img
-        src={`/devices/${sensorType || 'sensor_generic'}.png`}
+        src={`/devices/${getSensorImg(sensorType)}`}
         alt={cat.label}
         onError={e => { e.target.src = '/devices/sensor_generic.png'; }}
         style={{
@@ -163,7 +175,8 @@ export function SensorNode({ id, data, selected }) {
   let requiredHandles = ['vcc', 'gnd', 'signal'];
   if (data.sensorType === 'hcsr04')  requiredHandles = ['vcc', 'gnd', 'trig', 'echo'];
   else if (data.sensorType === 'bme280') requiredHandles = ['vcc', 'gnd', 'sda', 'scl'];
-  else if (['led', 'buzzer'].includes(data.sensorType)) requiredHandles = ['vcc', 'gnd', 'signal'];
+  else if (data.sensorType === 'led')    requiredHandles = ['gnd', 'signal']; // 2 wires for LED
+  else if (['buzzer'].includes(data.sensorType)) requiredHandles = ['vcc', 'gnd', 'signal'];
 
   const connectedEdges   = edges.filter(e => e.source === id || e.target === id);
   const connectedHandles = connectedEdges.map(e => e.source === id ? e.sourceHandle : e.targetHandle);
@@ -177,7 +190,9 @@ export function SensorNode({ id, data, selected }) {
   // ── Display value for sensors ──
   let display = '— —';
   if (isActive && hasLive) {
-    if (typeof live === 'boolean' || data.sensorType === 'ky037' || data.sensorType === 'pir') {
+    if (data.sensorType === 'led' || data.sensorType === 'buzzer') {
+      display = live ? 'ON' : 'OFF';
+    } else if (typeof live === 'boolean' || data.sensorType === 'ky037' || data.sensorType === 'pir') {
       display = live ? 'DETECTED' : 'CLEAR';
     } else {
       display = `${live}${unit}`;
@@ -192,11 +207,14 @@ export function SensorNode({ id, data, selected }) {
 
   // ─── Render device body ────────────────────────────────────────────────────
   const renderDevice = () => {
+    // For actuators, we only want them visually active if simulation is running AND they receive a HIGH signal
+    const isActuatorActive = isActive && live === true;
+
     switch (data.sensorType) {
       case 'led':
-        return <LedVisual active={isActive} error={hasWireError} color={color} />;
+        return <LedVisual active={isActuatorActive} error={hasWireError} color={color} />;
       case 'buzzer':
-        return <BuzzerVisual active={isActive} error={hasWireError} />;
+        return <BuzzerVisual active={isActuatorActive} error={hasWireError} />;
       case 'button':
         return <ButtonVisual pressed={isActive} />;
       default:
@@ -314,7 +332,7 @@ export function SensorNode({ id, data, selected }) {
           borderRadius: 4, border: '1px solid var(--sim-border3)'
         }}>
           {renderHandle('gnd', 'GND', '#555566')}
-          {renderHandle('vcc', 'VCC', '#cc2222')}
+          {data.sensorType !== 'led' && renderHandle('vcc', 'VCC', '#cc2222')}
 
           {data.sensorType === 'hcsr04' ? (
             <>
