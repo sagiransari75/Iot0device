@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
-const BACKEND = typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000';
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000');
 
 const features = [
   { num: '01', title: 'GPIO VISUALIZER',      desc: 'Interactive Raspberry Pi 40-pin GPIO header. Click any pin to inspect function, see real-time HIGH/LOW state changes.' },
