@@ -258,7 +258,8 @@ function SimulatorCanvas() {
 
   // ── Socket connection ──
   useEffect(() => {
-    const newSocket = io('http://localhost:4000');
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const newSocket = io(API_URL);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(newSocket);
     return () => newSocket.disconnect();
@@ -305,6 +306,44 @@ function SimulatorCanvas() {
       const connectedKeys = [];
       const activeBuzzerIds = new Set();
 
+      // Simple evaluator to process python logic for write_pin
+      let pinStates = {};
+      try {
+        let currentCond = true;
+        let inIfBlock = false;
+        const lines = code.split('\n');
+        for (let line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('if ')) {
+                let expr = trimmed.substring(3, trimmed.length - 1);
+                expr = expr.replace(/temp/g, payload.data.temperature || 0)
+                           .replace(/hum/g, payload.data.humidity || 0)
+                           .replace(/distance/g, payload.data.distance || 0)
+                           .replace(/gas/g, payload.data.gas || 0);
+                try { currentCond = eval(expr); } catch(e) { currentCond = true; }
+                inIfBlock = true;
+            } else if (trimmed.startsWith('else:')) {
+                currentCond = !currentCond;
+            } else if (trimmed === '' || trimmed.startsWith('#')) {
+                continue;
+            } else if (!line.startsWith(' ') && !line.startsWith('\t') && trimmed !== 'else:') {
+                if (!trimmed.startsWith('def ')) {
+                   currentCond = true;
+                   inIfBlock = false;
+                }
+            }
+            
+            let wpMatch = trimmed.match(/write_pin\(['"](.*?)['"]\s*,\s*(\d+)\)/);
+            if (wpMatch) {
+                let pin = wpMatch[1].toLowerCase();
+                let val = parseInt(wpMatch[2]) === 1;
+                if (!inIfBlock || currentCond) {
+                    pinStates[pin] = val;
+                }
+            }
+        }
+      } catch(e) {}
+
       currentNodes.forEach(node => {
         if (node.type !== 'sensor') return;
         const sType = node.data.sensorType;
@@ -323,13 +362,31 @@ function SimulatorCanvas() {
 
         if (!isFullyWired || hasError) return;
 
+        let isOn = true;
+        if (sType === 'led' || sType === 'buzzer') {
+           const signalEdge = nodeEdges.find(e => {
+               const h = e.source === node.id ? e.sourceHandle : e.targetHandle;
+               return h === 'signal';
+           });
+           if (signalEdge) {
+               const controllerPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
+               const p = controllerPin.toLowerCase();
+               if (pinStates[p] !== undefined) {
+                   isOn = pinStates[p];
+               } else if (Object.keys(pinStates).length > 0) {
+                   isOn = false; // if code has write_pin, default other pins to off
+               }
+           }
+        }
+
         // ── Actuators: LED & Buzzer ──
         if (sType === 'led') {
-          // LED is wired and running — mark as active
-          connectedKeys.push('led');
+          if (isOn) connectedKeys.push('led');
         } else if (sType === 'buzzer') {
-          activeBuzzerIds.add(node.id);
-          connectedKeys.push('buzzer');
+          if (isOn) {
+             activeBuzzerIds.add(node.id);
+             connectedKeys.push('buzzer');
+          }
         } else if (cat.dataKey) {
           connectedKeys.push(cat.dataKey);
         }
@@ -408,15 +465,17 @@ function SimulatorCanvas() {
   const saveActivity = async (action, details) => {
     if (!user) return;
     try {
-      await axios.post('http://localhost:4000/api/history/add', { userId: user.id, action, details });
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      await axios.post(`${API_URL}/api/history/add`, { userId: user.id, action, details });
     } catch (err) { console.error('Log error:', err); }
   };
 
   const handleSaveProject = async () => {
     if (!user) return alert('Please login first');
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:4000/api/circuits', {
+      const token = localStorage.getItem('iot_token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await axios.post(`${API_URL}/api/circuits`, {
         id: currentProjectId,
         name: 'My Automated Project Workspace',
         nodes: getNodes(), edges: getEdges(), code
@@ -432,10 +491,11 @@ function SimulatorCanvas() {
   const handleLoadProject = async () => {
     if (!user) return alert('Please login first');
     try {
-      const token = localStorage.getItem('token');
-      const listRes = await axios.get('http://localhost:4000/api/circuits', { headers: { Authorization: `Bearer ${token}` } });
+      const token = localStorage.getItem('iot_token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const listRes = await axios.get(`${API_URL}/api/circuits`, { headers: { Authorization: `Bearer ${token}` } });
       if (listRes.data?.length > 0) {
-        const res = await axios.get(`http://localhost:4000/api/circuits/${listRes.data[0].id}`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${API_URL}/api/circuits/${listRes.data[0].id}`, { headers: { Authorization: `Bearer ${token}` } });
         if (res.data?.data) {
           const { nodes: ln, edges: le, code: lc } = res.data.data;
           if (ln) setNodes(ln);
