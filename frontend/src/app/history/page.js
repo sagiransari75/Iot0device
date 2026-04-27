@@ -31,7 +31,7 @@ export default function HistoryPage() {
 
   const handleClearHistory = async () => {
     if (!user?.id) return;
-    
+
     try {
       await axios.delete(`http://localhost:4000/api/history/${user.id}`);
       setLogs([]);
@@ -56,23 +56,22 @@ export default function HistoryPage() {
         <div className="flex justify-between items-center mb-10 border-b border-zinc-800 pb-6">
           <div>
             <h1 className="text-3xl font-bold italic text-orange-500">MR ENGINEER <span className="text-white not-italic">| Lab Logs</span></h1>
-            <p className="text-zinc-500 mt-2">Aapke saare simulator actions yahan record hote hain.</p>
+            <p className="text-zinc-500 mt-2"></p>
           </div>
           <div className="flex gap-3">
-            <button 
+            <button
               onClick={handleClearHistory}
               disabled={logs.length === 0}
-              className={`px-4 py-2 rounded-lg text-sm transition-all border flex items-center gap-2 ${
-                logs.length === 0 
+              className={`px-4 py-2 rounded-lg text-sm transition-all border flex items-center gap-2 ${logs.length === 0
                   ? 'bg-zinc-800/50 border-zinc-800 text-zinc-500 cursor-not-allowed'
                   : 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
-              }`}
+                }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
               Clear
             </button>
-            <button 
-              onClick={() => router.back()} 
+            <button
+              onClick={() => router.back()}
               className="bg-zinc-800 hover:bg-zinc-700 px-6 py-2 rounded-lg text-sm transition-all border border-zinc-700"
             >
               ← Back

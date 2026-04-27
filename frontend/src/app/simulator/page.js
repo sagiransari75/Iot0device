@@ -14,6 +14,8 @@ import { io } from 'socket.io-client';
 import { SensorNode, CATALOG } from '@/components/simulator/nodes/SensorNode';
 import { MicrocontrollerNode } from '@/components/simulator/nodes/MicrocontrollerNode';
 
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000');
+
 // ─── Theme-aware CSS variable reader ─────────────────────────────────────────
 // Returns a live obj of --sim-* values that updates when data-theme changes
 function useTheme() {
@@ -300,6 +302,44 @@ function SimulatorCanvas() {
       const connectedKeys = [];
       const activeBuzzerIds = new Set();
 
+      // Simple evaluator to process python logic for write_pin
+      let pinStates = {};
+      try {
+        let currentCond = true;
+        let inIfBlock = false;
+        const lines = code.split('\n');
+        for (let line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('if ')) {
+                let expr = trimmed.substring(3, trimmed.length - 1);
+                expr = expr.replace(/temp/g, payload.data.temperature || 0)
+                           .replace(/hum/g, payload.data.humidity || 0)
+                           .replace(/distance/g, payload.data.distance || 0)
+                           .replace(/gas/g, payload.data.gas || 0);
+                try { currentCond = eval(expr); } catch(e) { currentCond = true; }
+                inIfBlock = true;
+            } else if (trimmed.startsWith('else:')) {
+                currentCond = !currentCond;
+            } else if (trimmed === '' || trimmed.startsWith('#')) {
+                continue;
+            } else if (!line.startsWith(' ') && !line.startsWith('\t') && trimmed !== 'else:') {
+                if (!trimmed.startsWith('def ')) {
+                   currentCond = true;
+                   inIfBlock = false;
+                }
+            }
+            
+            let wpMatch = trimmed.match(/write_pin\(['"](.*?)['"]\s*,\s*(\d+)\)/);
+            if (wpMatch) {
+                let pin = wpMatch[1].toLowerCase();
+                let val = parseInt(wpMatch[2]) === 1;
+                if (!inIfBlock || currentCond) {
+                    pinStates[pin] = val;
+                }
+            }
+        }
+      } catch(e) {}
+
       currentNodes.forEach(node => {
         if (node.type !== 'sensor') return;
         const sType = node.data.sensorType;
@@ -319,13 +359,31 @@ function SimulatorCanvas() {
 
         if (!isFullyWired || hasError) return;
 
+        let isOn = true;
+        if (sType === 'led' || sType === 'buzzer') {
+           const signalEdge = nodeEdges.find(e => {
+               const h = e.source === node.id ? e.sourceHandle : e.targetHandle;
+               return h === 'signal';
+           });
+           if (signalEdge) {
+               const controllerPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
+               const p = controllerPin.toLowerCase();
+               if (pinStates[p] !== undefined) {
+                   isOn = pinStates[p];
+               } else if (Object.keys(pinStates).length > 0) {
+                   isOn = false; // if code has write_pin, default other pins to off
+               }
+           }
+        }
+
         // ── Actuators: LED & Buzzer ──
         if (sType === 'led') {
-          // LED is wired and running — mark as active
-          connectedKeys.push('led');
+          if (isOn) connectedKeys.push('led');
         } else if (sType === 'buzzer') {
-          activeBuzzerIds.add(node.id);
-          connectedKeys.push('buzzer');
+          if (isOn) {
+             activeBuzzerIds.add(node.id);
+             connectedKeys.push('buzzer');
+          }
         } else if (cat.dataKey) {
           connectedKeys.push(cat.dataKey);
         }

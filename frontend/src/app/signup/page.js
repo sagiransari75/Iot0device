@@ -89,7 +89,7 @@ export default function SignupPage() {
 
       if (success) {
         // --- Fix 2: Token Store & State Update ---
-        localStorage.setItem('token', token);
+        localStorage.setItem('iot_token', token);
         
         // Context update (login credentials wala call yahan nahi karna)
         if (login) {
