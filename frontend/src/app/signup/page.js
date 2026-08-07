@@ -146,7 +146,7 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} noValidate>
             <div style={{ marginBottom: '1.25rem' }}>
               <label style={labelStyle}>Full Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Shubham Sharma" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Sagir Ansari" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
             </div>
             <div style={{ marginBottom: '1.25rem' }}>
               <label style={labelStyle}>Email Address</label>
