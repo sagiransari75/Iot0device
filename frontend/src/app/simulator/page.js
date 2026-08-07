@@ -36,38 +36,38 @@ function useTheme() {
 
   return {
     theme,
-    bg:          v('#0a0a0a', '#f0f0ec'),
-    bg2:         v('#0d0d0d', '#e8e8e4'),
-    bg3:         v('#080808', '#dcdcda'),
-    bg4:         v('#050505', '#ececea'),
-    bg5:         v('#000000', '#f8f8f6'),
-    panelBg:     v('#111111', '#e0e0dc'),
-    border:      v('#1a1a1a', '#cccccc'),
-    border2:     v('#222222', '#bbbbbb'),
-    border3:     v('#333333', '#aaaaaa'),
-    border4:     v('#2a2a3e', '#9090b0'),
-    text:        v('#cccccc', '#1a1a1a'),
-    text2:       v('#888888', '#555555'),
-    text3:       v('#555555', '#777777'),
-    text4:       v('#444444', '#888888'),
-    text5:       v('#333333', '#999999'),
-    tabBg:       v('#1a1a2e', '#d8d8f0'),
-    legendBg:    v('rgba(0,0,0,0.88)',         'rgba(240,240,236,0.96)'),
-    compBg:      v('rgba(0,0,0,0.92)',         'rgba(236,236,234,0.96)'),
-    toolbarBg:   v('#0d0d0d', '#e4e4e0'),
-    editorHdr:   v('#0a0a0a', '#d8d8d4'),
-    terminalBg:  v('#000000', '#1a1a2a'),
+    bg: v('#0a0a0a', '#f0f0ec'),
+    bg2: v('#0d0d0d', '#e8e8e4'),
+    bg3: v('#080808', '#dcdcda'),
+    bg4: v('#050505', '#ececea'),
+    bg5: v('#000000', '#f8f8f6'),
+    panelBg: v('#111111', '#e0e0dc'),
+    border: v('#1a1a1a', '#cccccc'),
+    border2: v('#222222', '#bbbbbb'),
+    border3: v('#333333', '#aaaaaa'),
+    border4: v('#2a2a3e', '#9090b0'),
+    text: v('#cccccc', '#1a1a1a'),
+    text2: v('#888888', '#555555'),
+    text3: v('#555555', '#777777'),
+    text4: v('#444444', '#888888'),
+    text5: v('#333333', '#999999'),
+    tabBg: v('#1a1a2e', '#d8d8f0'),
+    legendBg: v('rgba(0,0,0,0.88)', 'rgba(240,240,236,0.96)'),
+    compBg: v('rgba(0,0,0,0.92)', 'rgba(236,236,234,0.96)'),
+    toolbarBg: v('#0d0d0d', '#e4e4e0'),
+    editorHdr: v('#0a0a0a', '#d8d8d4'),
+    terminalBg: v('#000000', '#1a1a2a'),
     editorTheme: v('vs-dark', 'light'),
     canvasColor: v('#1a1a1a', '#cccccc'),
-    wireIdle:    v('#555555', '#888888'),
+    wireIdle: v('#555555', '#888888'),
   };
 }
 
 const nodeTypes = {
-  raspberrypi:    MicrocontrollerNode,
+  raspberrypi: MicrocontrollerNode,
   microcontroller: MicrocontrollerNode,
-  sensor:          SensorNode,
-  breadboard:      MicrocontrollerNode,  // legacy saved circuits
+  sensor: SensorNode,
+  breadboard: MicrocontrollerNode,  // legacy saved circuits
 };
 
 const getDeviceImg = (type) => {
@@ -78,7 +78,20 @@ const getDeviceImg = (type) => {
 };
 
 // ─── Default template code (simulation blocked if this or empty) ──────────────
-const DEFAULT_CODE = `# MR ENGINEER - ESP32/Pico Logic\n\ndef setup():\n    print('System Initialized...')\n\ndef loop():\n    val = read_sensor('D32')\n    print(f'Value: {val}')`;
+const DEFAULT_CODE = `# MR ENGINEER - ESP32/Pico Logic
+# Default condition: Temp > 30 turns ON LED at D2
+def setup():
+    print('System Initialized...')
+
+def loop():
+    temp = read_sensor('D17')
+    print(f'Temperature: {temp}°C')
+    
+    if temp > 30:
+        write_pin('D2', 1)
+    else:
+        write_pin('D2', 0)
+`;
 
 function isCodeEmpty(code) {
   if (!code) return true;
@@ -111,7 +124,7 @@ function stopBuzzerSound(id) {
   try {
     buzzerOscillators[id].osc.stop();
     buzzerOscillators[id].ctx.close();
-  } catch (e) {}
+  } catch (e) { }
   delete buzzerOscillators[id];
 }
 function stopAllBuzzers() {
@@ -124,9 +137,9 @@ function PaletteItem({ type, category }) {
   let label = '', color = '#555';
   if (category === 'mcu' || category === 'board') {
     if (type === 'raspberrypi') { label = 'Raspberry Pi 4B'; color = '#3fa83f'; }
-    else if (type === 'esp32')  { label = 'ESP32 WROOM-32';  color = '#f59e0b'; }
-    else if (type === 'pico')   { label = 'RP2040 Pico';     color = '#00ff88'; }
-    else if (type === 'arduino'){ label = 'Arduino Uno R3';  color = '#00aaff'; }
+    else if (type === 'esp32') { label = 'ESP32 WROOM-32'; color = '#f59e0b'; }
+    else if (type === 'pico') { label = 'RP2040 Pico'; color = '#00ff88'; }
+    else if (type === 'arduino') { label = 'Arduino Uno R3'; color = '#00aaff'; }
     else if (type === 'breadboard') { label = 'ESP32 Board'; color = '#f59e0b'; }
   } else {
     const cat = CATALOG[type] || { label: type, color: '#ff5500' };
@@ -187,7 +200,7 @@ function ComponentPanel({ nodes, edges, isRunning, sensorData }) {
         let reqHandles = ['vcc', 'gnd', 'signal'];
         if (node.data.sensorType === 'hcsr04') reqHandles = ['vcc', 'gnd', 'trig', 'echo'];
         else if (node.data.sensorType === 'bme280') reqHandles = ['vcc', 'gnd', 'sda', 'scl'];
-        else if (node.data.sensorType === 'led')    reqHandles = ['gnd', 'signal'];
+        else if (node.data.sensorType === 'led') reqHandles = ['gnd', 'signal'];
         const isWired = reqHandles.every(h => connectedHandles.includes(h));
         const hasError = connectedEdges.some(e => e.data?.isError);
         const isActive = isRunning && isWired && !hasError;
@@ -201,7 +214,7 @@ function ComponentPanel({ nodes, edges, isRunning, sensorData }) {
         if (hasError) { statusText = '✕ WIRE ERROR'; statusColor = '#ef4444'; }
         if (isActive) {
           statusColor = cat.color || '#10b981';
-          if (node.data.sensorType === 'led')    statusText = live ? '💡 ON' : '○ OFF';
+          if (node.data.sensorType === 'led') statusText = live ? '💡 ON' : '○ OFF';
           else if (node.data.sensorType === 'buzzer') statusText = live ? '🔔 BEEPING' : '○ IDLE';
           else if (node.data.sensorType === 'button') statusText = '🔘 ACTIVE';
           else if (hasLive) {
@@ -247,15 +260,16 @@ function SimulatorCanvas() {
 
   // ── Panel collapse state ──
   const [paletteOpen, setPaletteOpen] = useState(true);
-  const [editorOpen,  setEditorOpen]  = useState(true);
+  const [editorOpen, setEditorOpen] = useState(true);
 
   const terminalRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const buzzerNodeIds = useRef(new Set());
+  const pinStatesRef = useRef({});
 
   // ── Socket connection ──
   useEffect(() => {
-    const newSocket = io('http://localhost:4000');
+    const newSocket = io(BACKEND);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(newSocket);
     return () => newSocket.disconnect();
@@ -285,6 +299,7 @@ function SimulatorCanvas() {
     if (!isRunning) {
       stopAllBuzzers();
       buzzerNodeIds.current.clear();
+      pinStatesRef.current = {};
     }
   }, [isRunning]);
 
@@ -301,44 +316,137 @@ function SimulatorCanvas() {
       // Find connected sensors and actuators
       const connectedKeys = [];
       const activeBuzzerIds = new Set();
+      const actuatorStates = {};
+      const pinToValue = {};
+
+      currentNodes.forEach(node => {
+        if (node.type === 'sensor') {
+          const cat = CATALOG[node.data.sensorType];
+          if (!cat || !cat.dataKey || payload.data[cat.dataKey] === undefined) return;
+          const nodeEdges = currentEdges.filter(e => e.source === node.id || e.target === node.id);
+          const signalEdge = nodeEdges.find(e => {
+            const h = e.source === node.id ? e.sourceHandle : e.targetHandle;
+            return ['signal', 'trig', 'sda'].includes(h);
+          });
+          if (signalEdge) {
+            const controllerPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
+            const p = controllerPin.toLowerCase();
+            const val = payload.data[cat.dataKey];
+            pinToValue[p] = val;
+            
+            const numMatch = p.match(/\d+/);
+            if (numMatch) {
+              const num = numMatch[0];
+              pinToValue[num] = val;
+              pinToValue[`d${num}`] = val;
+              pinToValue[`gp${num}`] = val;
+              pinToValue[`a${num}`] = val;
+            }
+          }
+        }
+      });
 
       // Simple evaluator to process python logic for write_pin
-      let pinStates = {};
+      let pinStates = { ...pinStatesRef.current };
+      let controlledPins = new Set();
       try {
         let currentCond = true;
         let inIfBlock = false;
+        let vars = {};
         const lines = code.split('\n');
         for (let line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('if ')) {
-                let expr = trimmed.substring(3, trimmed.length - 1);
-                expr = expr.replace(/temp/g, payload.data.temperature || 0)
-                           .replace(/hum/g, payload.data.humidity || 0)
-                           .replace(/distance/g, payload.data.distance || 0)
-                           .replace(/gas/g, payload.data.gas || 0);
-                try { currentCond = eval(expr); } catch(e) { currentCond = true; }
-                inIfBlock = true;
-            } else if (trimmed.startsWith('else:')) {
-                currentCond = !currentCond;
-            } else if (trimmed === '' || trimmed.startsWith('#')) {
-                continue;
-            } else if (!line.startsWith(' ') && !line.startsWith('\t') && trimmed !== 'else:') {
-                if (!trimmed.startsWith('def ')) {
-                   currentCond = true;
-                   inIfBlock = false;
-                }
+          const trimmed = line.trim();
+
+          // C++ variable assignment for pins: int ledPin = 2; or const int ledPin = 2;
+          let cvMatch = trimmed.match(/(?:const\s+)?int\s+([a-zA-Z0-9_]+)\s*=\s*(\d+)\s*;/);
+          if (cvMatch) {
+            vars[cvMatch[1]] = parseInt(cvMatch[2]);
+          }
+
+          let rsMatch = trimmed.match(/([a-zA-Z0-9_]+)\s*=\s*read_sensor\(\s*['"]?(.*?)['"]?\s*\)/);
+          if (rsMatch) {
+            let varName = rsMatch[1];
+            let arg = rsMatch[2].trim();
+            let pinName = vars[arg] !== undefined ? vars[arg].toString().toLowerCase() : arg.toLowerCase();
+            vars[varName] = pinToValue[pinName] !== undefined ? pinToValue[pinName] : 0;
+          }
+
+          if (trimmed.startsWith('if ') || trimmed.startsWith('if(')) {
+            let expr = trimmed;
+            if (expr.startsWith('if(')) expr = expr.substring(2); // Keep the '(' so it's '(cond)'
+            else if (expr.startsWith('if ')) expr = expr.substring(3);
+
+            expr = expr.replace(/:$/, '').replace(/{$/, '').trim();
+            if (expr.startsWith('(') && expr.endsWith(')')) {
+              expr = expr.substring(1, expr.length - 1);
             }
+
+            for (const [vName, vVal] of Object.entries(vars)) {
+              const regex = new RegExp(`\\b${vName}\\b`, 'g');
+              expr = expr.replace(regex, vVal);
+            }
+
+            expr = expr.replace(/temp(erature)?/gi, payload.data.temperature || 0)
+              .replace(/hum(idity)?/gi, payload.data.humidity || 0)
+              .replace(/distance/gi, payload.data.distance || 0)
+              .replace(/gas/gi, payload.data.gas || 0)
+              .replace(/light/gi, payload.data.light || 0)
+              .replace(/motion/gi, payload.data.motion ? 'true' : 'false')
+              .replace(/\bTrue\b/g, 'true')
+              .replace(/\bFalse\b/g, 'false')
+              .replace(/\band\b/g, '&&')
+              .replace(/\bor\b/g, '||')
+              .replace(/\bnot\b/g, '!');
+            try {
+              // eslint-disable-next-line no-eval
+              currentCond = !!eval(expr);
+            } catch (e) {
+              currentCond = false; // DO NOT DEFAULT TO TRUE ON ERROR!
+            }
+            inIfBlock = true;
+          } else if (trimmed.startsWith('else:') || trimmed.startsWith('else {') || trimmed === '} else {') {
+            currentCond = !currentCond;
+          } else if (trimmed === '' || trimmed === '{' || trimmed.startsWith('#') || trimmed.startsWith('//')) {
+            continue;
+          } else if (trimmed.startsWith('}')) {
+            if (!trimmed.includes('else')) {
+              currentCond = true;
+              inIfBlock = false;
+            }
+          } else if (!line.startsWith(' ') && !line.startsWith('\t') && !trimmed.startsWith('}')) {
+            if (!trimmed.startsWith('def ') && !trimmed.startsWith('void ')) {
+              currentCond = true;
+              inIfBlock = false;
+            }
+          }
+
+          let wpMatch = trimmed.match(/write_pin\(\s*['"]?(.*?)['"]?\s*,\s*(\d+|HIGH|LOW|true|false)\s*\)/i);
+          let dwMatch = trimmed.match(/digitalWrite\(\s*['"]?(.*?)['"]?\s*,\s*(HIGH|LOW|1|0|true|false)\s*\)/i);
+
+          if (wpMatch || dwMatch) {
+            let pinStr = wpMatch ? wpMatch[1].trim() : dwMatch[1].trim();
+            let valStr = wpMatch ? wpMatch[2].trim() : dwMatch[2].trim();
+
+            // Resolve variable (e.g., ledPin -> 2)
+            let resolvedPin = vars[pinStr] !== undefined ? vars[pinStr].toString() : pinStr;
+            let pin = resolvedPin.toLowerCase();
             
-            let wpMatch = trimmed.match(/write_pin\(['"](.*?)['"]\s*,\s*(\d+)\)/);
-            if (wpMatch) {
-                let pin = wpMatch[1].toLowerCase();
-                let val = parseInt(wpMatch[2]) === 1;
-                if (!inIfBlock || currentCond) {
-                    pinStates[pin] = val;
-                }
+            // Only strictly enforce 'd' prefix if it's purely numeric
+            if (/^\d+$/.test(pin)) pin = `d${pin}`;
+
+            controlledPins.add(pin);
+
+            let val = false;
+            if (valStr === '1' || valStr.toUpperCase() === 'HIGH' || valStr.toLowerCase() === 'true') val = true;
+
+            if (!inIfBlock || currentCond) {
+              pinStates[pin] = val;
             }
+          }
         }
-      } catch(e) {}
+      } catch (e) { }
+
+      pinStatesRef.current = pinStates;
 
       currentNodes.forEach(node => {
         if (node.type !== 'sensor') return;
@@ -350,7 +458,7 @@ function SimulatorCanvas() {
         let reqHandles = ['vcc', 'gnd', 'signal'];
         if (sType === 'hcsr04') reqHandles = ['vcc', 'gnd', 'trig', 'echo'];
         else if (sType === 'bme280') reqHandles = ['vcc', 'gnd', 'sda', 'scl'];
-        else if (sType === 'led')    reqHandles = ['gnd', 'signal'];
+        else if (sType === 'led') reqHandles = ['gnd', 'signal'];
 
         const nodeEdges = currentEdges.filter(e => e.source === node.id || e.target === node.id);
         const nodeHandles = nodeEdges.map(e => e.source === node.id ? e.sourceHandle : e.targetHandle);
@@ -359,30 +467,42 @@ function SimulatorCanvas() {
 
         if (!isFullyWired || hasError) return;
 
-        let isOn = true;
+        let isOn = false; // Default to OFF
         if (sType === 'led' || sType === 'buzzer') {
-           const signalEdge = nodeEdges.find(e => {
-               const h = e.source === node.id ? e.sourceHandle : e.targetHandle;
-               return h === 'signal';
-           });
-           if (signalEdge) {
-               const controllerPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
-               const p = controllerPin.toLowerCase();
-               if (pinStates[p] !== undefined) {
-                   isOn = pinStates[p];
-               } else if (Object.keys(pinStates).length > 0) {
-                   isOn = false; // if code has write_pin, default other pins to off
-               }
-           }
+          const signalEdge = nodeEdges.find(e => {
+            const h = e.source === node.id ? e.sourceHandle : e.targetHandle;
+            return h === 'signal';
+          });
+          if (signalEdge) {
+            const controllerPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
+            const p = controllerPin.toLowerCase();
+            
+            let foundState = pinStates[p];
+            if (foundState === undefined) {
+              const numMatch = p.match(/\d+/);
+              if (numMatch) {
+                const num = numMatch[0];
+                if (pinStates[num] !== undefined) foundState = pinStates[num];
+                else if (pinStates[`d${num}`] !== undefined) foundState = pinStates[`d${num}`];
+                else if (pinStates[`gp${num}`] !== undefined) foundState = pinStates[`gp${num}`];
+                else if (pinStates[`a${num}`] !== undefined) foundState = pinStates[`a${num}`];
+              }
+            }
+            if (foundState !== undefined) {
+              isOn = foundState;
+            }
+          }
         }
+
+        actuatorStates[node.id] = isOn; // Store state for UI and logs
 
         // ── Actuators: LED & Buzzer ──
         if (sType === 'led') {
-          if (isOn) connectedKeys.push('led');
+          connectedKeys.push('led'); // Always push so it logs 0 or 1
         } else if (sType === 'buzzer') {
+          connectedKeys.push('buzzer');
           if (isOn) {
-             activeBuzzerIds.add(node.id);
-             connectedKeys.push('buzzer');
+            activeBuzzerIds.add(node.id);
           }
         } else if (cat.dataKey) {
           connectedKeys.push(cat.dataKey);
@@ -414,22 +534,12 @@ function SimulatorCanvas() {
         if (connectedKeys.includes(k)) filteredData[k] = v;
       }
 
-      // Add actuator states from GPIO (if connected)
+      // Apply evaluated actuator states directly
       currentNodes.forEach(node => {
         if (node.type !== 'sensor') return;
         if (node.data.sensorType === 'led' || node.data.sensorType === 'buzzer') {
-          const nodeEdges = currentEdges.filter(e => e.source === node.id || e.target === node.id);
-          const signalEdge = nodeEdges.find(e => 
-            (e.source === node.id && e.sourceHandle === 'signal') || 
-            (e.target === node.id && e.targetHandle === 'signal')
-          );
-          if (signalEdge) {
-            const mcuPin = signalEdge.source === node.id ? signalEdge.targetHandle : signalEdge.sourceHandle;
-            const pinMatch = mcuPin?.match(/\d+/);
-            if (pinMatch && payload.gpio) {
-              const pinIndex = pinMatch[0];
-              filteredData[node.data.sensorType] = (payload.gpio[pinIndex]?.state === 'HIGH');
-            }
+          if (actuatorStates[node.id] !== undefined) {
+            filteredData[node.data.sensorType] = actuatorStates[node.id];
           }
         }
       });
@@ -450,8 +560,8 @@ function SimulatorCanvas() {
 
         // Find which pin this sensor is connected to
         const nodeEdges = currentEdges.filter(e => e.source === n.id || e.target === n.id);
-        const signalEdge = nodeEdges.find(e => 
-          (e.source === n.id && e.sourceHandle === 'signal') || 
+        const signalEdge = nodeEdges.find(e =>
+          (e.source === n.id && e.sourceHandle === 'signal') ||
           (e.target === n.id && e.targetHandle === 'signal')
         );
 
@@ -471,7 +581,7 @@ function SimulatorCanvas() {
 
         // Actuators (LED/Buzzer)
         if (n.data.sensorType === 'led' || n.data.sensorType === 'buzzer') {
-          return { ...n, data: { ...n.data, liveValue: gpioValue } };
+          return { ...n, data: { ...n.data, liveValue: actuatorStates[n.id] ?? false } };
         }
 
         // Sensors (DHT11, etc.)
@@ -506,15 +616,15 @@ function SimulatorCanvas() {
   const saveActivity = async (action, details) => {
     if (!user) return;
     try {
-      await axios.post('http://localhost:4000/api/history/add', { userId: user.id, action, details });
+      await axios.post(`${BACKEND}/api/history/add`, { userId: user.id, action, details });
     } catch (err) { console.error('Log error:', err); }
   };
 
   const handleSaveProject = async () => {
     if (!user) return alert('Please login first');
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:4000/api/circuits', {
+      const token = localStorage.getItem('iot_token');
+      const res = await axios.post(`${BACKEND}/api/circuits`, {
         id: currentProjectId,
         name: 'My Automated Project Workspace',
         nodes: getNodes(), edges: getEdges(), code
@@ -530,10 +640,10 @@ function SimulatorCanvas() {
   const handleLoadProject = async () => {
     if (!user) return alert('Please login first');
     try {
-      const token = localStorage.getItem('token');
-      const listRes = await axios.get('http://localhost:4000/api/circuits', { headers: { Authorization: `Bearer ${token}` } });
+      const token = localStorage.getItem('iot_token');
+      const listRes = await axios.get(`${BACKEND}/api/circuits`, { headers: { Authorization: `Bearer ${token}` } });
       if (listRes.data?.length > 0) {
-        const res = await axios.get(`http://localhost:4000/api/circuits/${listRes.data[0].id}`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${BACKEND}/api/circuits/${listRes.data[0].id}`, { headers: { Authorization: `Bearer ${token}` } });
         if (res.data?.data) {
           const { nodes: ln, edges: le, code: lc } = res.data.data;
           if (ln) setNodes(ln);
@@ -556,6 +666,7 @@ function SimulatorCanvas() {
       setIsRunning(false);
       stopAllBuzzers();
       buzzerNodeIds.current.clear();
+      pinStatesRef.current = {};
       setTerminalLogs(prev => [...prev, '> Simulation Terminated.', '> System Standby.']);
       saveActivity('Stop Simulation', 'User reset.');
       setEdges(eds => eds.map(e => ({
@@ -606,11 +717,11 @@ function SimulatorCanvas() {
   const onConnect = useCallback((params) => {
     const srcPin = (params.sourceHandle || '').toLowerCase();
     const tgtPin = (params.targetHandle || '').toLowerCase();
-    const powerPins  = ['vcc', '3v3', '5v', '3.3v', 'vin'];
-    const isSrcPower  = powerPins.includes(srcPin);
-    const isTgtPower  = powerPins.includes(tgtPin);
-    const isSrcGnd    = srcPin.startsWith('gnd') || srcPin === 'ground';
-    const isTgtGnd    = tgtPin.startsWith('gnd') || tgtPin === 'ground';
+    const powerPins = ['vcc', '3v3', '5v', '3.3v', 'vin'];
+    const isSrcPower = powerPins.includes(srcPin);
+    const isTgtPower = powerPins.includes(tgtPin);
+    const isSrcGnd = srcPin.startsWith('gnd') || srcPin === 'ground';
+    const isTgtGnd = tgtPin.startsWith('gnd') || tgtPin === 'ground';
     const isSrcSignal = !isSrcPower && !isSrcGnd;
     const isTgtSignal = !isTgtPower && !isTgtGnd;
 
@@ -648,12 +759,12 @@ function SimulatorCanvas() {
 
     // ── Wire color by pin type ──
     const pinColor = (pin) => {
-      if (['vcc','3v3','5v','3.3v','vin','vbus','vsys'].includes(pin)) return '#ef4444';  // red — power
-      if (pin.startsWith('gnd') || pin === 'ground')                    return '#6b7280';  // gray — GND
-      if (['sda','scl'].includes(pin))                                  return '#10b981';  // teal — I2C
-      if (['mosi','miso','sclk','ce0','ce1','sck'].includes(pin))       return '#06b6d4';  // cyan — SPI
-      if (['tx','rx','tx0','rx0','tx1','rx1','tx2','rx2','txd','rxd'].includes(pin)) return '#f59e0b'; // amber — UART
-      if (['trig','echo'].includes(pin))                                return '#a855f7';  // violet
+      if (['vcc', '3v3', '5v', '3.3v', 'vin', 'vbus', 'vsys'].includes(pin)) return '#ef4444';  // red — power
+      if (pin.startsWith('gnd') || pin === 'ground') return '#6b7280';  // gray — GND
+      if (['sda', 'scl'].includes(pin)) return '#10b981';  // teal — I2C
+      if (['mosi', 'miso', 'sclk', 'ce0', 'ce1', 'sck'].includes(pin)) return '#06b6d4';  // cyan — SPI
+      if (['tx', 'rx', 'tx0', 'rx0', 'tx1', 'rx1', 'tx2', 'rx2', 'txd', 'rxd'].includes(pin)) return '#f59e0b'; // amber — UART
+      if (['trig', 'echo'].includes(pin)) return '#a855f7';  // violet
       return '#3b82f6'; // blue — default signal
     };
 
@@ -661,11 +772,11 @@ function SimulatorCanvas() {
 
     setEdges(eds => addEdge({
       ...params,
-      data:     { isError: hasError, srcPin, tgtPin },
-      type:     'smoothstep',
-      style:    { stroke: wireColor, strokeWidth: hasError ? 3 : 2.5, opacity: 0.9 },
+      data: { isError: hasError, srcPin, tgtPin },
+      type: 'smoothstep',
+      style: { stroke: wireColor, strokeWidth: hasError ? 3 : 2.5, opacity: 0.9 },
       animated: isRunning && !hasError,
-      label:    hasError ? '⚠' : undefined,
+      label: hasError ? '⚠' : undefined,
       labelStyle: { fill: '#ef4444', fontSize: 12 },
       markerEnd: { type: 'arrowclosed', width: 14, height: 14, color: wireColor },
     }, eds));
@@ -675,9 +786,9 @@ function SimulatorCanvas() {
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/preserve-manual-memoization
   const onDrop = useCallback(e => {
     e.preventDefault();
-    const type    = e.dataTransfer.getData('type');
+    const type = e.dataTransfer.getData('type');
     const subType = e.dataTransfer.getData('subType');
-    const imgSrc  = e.dataTransfer.getData('imgSrc');
+    const imgSrc = e.dataTransfer.getData('imgSrc');
     if (!type) return;
     const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
     setNodes(nds => [...nds, {
@@ -947,10 +1058,10 @@ function SimulatorCanvas() {
                     <div key={i} style={{
                       color: log.includes('SUCCESS') ? '#10b981'
                         : log.includes('[ERROR]') ? '#ef4444'
-                        : log.includes('[WARNING]') ? '#f59e0b'
-                        : log.includes('[LIVE]') ? '#3b82f6'
-                        : log.includes('[MQTT]') ? '#8b5cf6'
-                        : t.text2,
+                          : log.includes('[WARNING]') ? '#f59e0b'
+                            : log.includes('[LIVE]') ? '#3b82f6'
+                              : log.includes('[MQTT]') ? '#8b5cf6'
+                                : t.text2,
                       marginBottom: 2, lineHeight: 1.5
                     }}>
                       {log}

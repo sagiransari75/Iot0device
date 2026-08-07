@@ -338,7 +338,7 @@ export function SensorNode({ id, data, selected }) {
             <>
               {renderHandle('trig', 'TRIG', color)}
               {renderHandle('echo', 'ECHO', color)}
-            </>
+             </>
           ) : data.sensorType === 'bme280' ? (
             <>
               {renderHandle('sda', 'SDA', color)}
